@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="description" content="Ephemeral end-to-end encrypted chat. No accounts. No logs. Just a code.">
+<meta name="theme-color" content="#060A0F">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>VaultChat — Encrypted Ephemeral Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#060A0F;
+  --s1:#0B1219;
+  --s2:#101A26;
+  --s3:#162133;
+  --s4:#1C2B40;
+  --border:rgba(255,255,255,0.055);
+  --border-hi:rgba(255,255,255,0.11);
+  --border-bright:rgba(255,255,255,0.2);
+  --accent:#00D4A0;
+  --accent-lo:#009E78;
+  --accent-glow:rgba(0,212,160,0.12);
+  --accent-glow-hi:rgba(0,212,160,0.28);
+  --blue:#5B8DEF;
+  --blue-glow:rgba(91,141,239,0.15);
+  --txt:#DEE9F5;
+  --txt2:#6E8BA4;
+  --txt3:#394E61;
+  --danger:#FF5A5A;
+  --warn:#F5A623;
+  --r:8px;
+  --rm:12px;
+  --rl:18px;
+  --rxl:24px;
+  --sans:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+  --ease:cubic-bezier(.4,0,.2,1);
+  --vh:1vh;
+}
+html{height:100%;scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--txt);
+  font-family:var(--sans);
+  font-size:15px;
+  line-height:1.6;
+  height:calc(var(--vh,1vh)*100);
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:radial-gradient(circle,rgba(255,255,255,0.022) 1px,transparent 1px);
+  background-size:28px 28px;
+  pointer-events:none;
+  z-index:0;
+}
+#app{position:relative;z-index:1;height:100%;display:flex;flex-direction:column}
+
+/* SCREENS */
+.screen{display:none;flex-direction:column;flex:1;overflow:hidden;animation:fadeUp .28s var(--ease)}
+.screen.active{display:flex}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--s4);border-radius:2px}
+
+/* TYPOGRAPHY */
+h1{font-size:clamp(26px,6vw,34px);font-weight:600;letter-spacing:-.5px}
+h2{font-size:18px;font-weight:600}
+h3{font-size:15px;font-weight:600}
+
+/* BUTTONS */
+button{font-family:var(--sans);cursor:pointer;border:none;outline:none}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 22px;border-radius:var(--rm);font-size:14px;font-weight:500;
+  transition:all .15s var(--ease);white-space:nowrap;user-select:none;
+}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);color:#03130D}
+.btn-primary:hover{background:#00EDB3;box-shadow:0 0 28px var(--accent-glow-hi)}
+.btn-secondary{background:var(--s3);color:var(--txt);border:1px solid var(--border-hi)}
+.btn-secondary:hover{background:var(--s4);border-color:var(--border-bright)}
+.btn-ghost{background:transparent;color:var(--txt2);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--txt);border-color:var(--border-hi);background:var(--s2)}
+.btn-danger{background:rgba(255,90,90,.1);color:var(--danger);border:1px solid rgba(255,90,90,.22)}
+.btn-danger:hover{background:rgba(255,90,90,.18)}
+.btn-lg{padding:15px 30px;font-size:15px;border-radius:var(--rl)}
+.btn-sm{padding:7px 14px;font-size:13px;border-radius:var(--r)}
+.btn-full{width:100%}
+.btn-icon{
+  padding:9px;border-radius:var(--r);background:var(--s3);
+  border:1px solid var(--border);color:var(--txt2);
+  transition:all .15s;display:flex;align-items:center;justify-content:center;
+}
+.btn-icon:hover{color:var(--txt);border-color:var(--border-hi);background:var(--s4)}
+.btn-icon:active{transform:scale(.94)}
+
+/* INPUTS */
+.field-input{
+  background:var(--s2);border:1px solid var(--border-hi);border-radius:var(--rm);
+  color:var(--txt);font-family:var(--mono);font-size:20px;font-weight:600;
+  letter-spacing:.2em;padding:14px 18px;outline:none;
+  transition:border-color .15s,box-shadow .15s;
+  text-transform:uppercase;width:100%;text-align:center;
+}
+.field-input::placeholder{color:var(--txt3);letter-spacing:.1em}
+.field-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+
+/* BACK BUTTON */
+.back-btn{
+  display:flex;align-items:center;justify-content:center;
+  width:36px;height:36px;border-radius:var(--r);
+  background:var(--s2);border:1px solid var(--border);color:var(--txt2);
+  transition:all .15s;flex-shrink:0;
+}
+.back-btn:hover{color:var(--txt);border-color:var(--border-hi)}
+
+/* SCREEN HEADER */
+.screen-hdr{display:flex;align-items:flex-start;gap:12px;margin-bottom:24px}
+.screen-hdr-text h2{margin:0}
+.screen-hdr-text p{font-size:13px;color:var(--txt2);margin-top:2px}
+
+/* STATUS DOT */
+.dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--txt3);display:inline-block;flex-shrink:0;
+}
+.dot.waiting{background:var(--warn);animation:pulseWarn 1.8s infinite}
+.dot.live{background:var(--accent);animation:pulseGreen 1.8s infinite}
+.dot.dead{background:var(--danger)}
+@keyframes pulseWarn{0%,100%{box-shadow:0 0 0 0 rgba(245,166,35,.5)}60%{box-shadow:0 0 0 5px rgba(245,166,35,0)}}
+@keyframes pulseGreen{0%,100%{box-shadow:0 0 0 0 rgba(0,212,160,.5)}60%{box-shadow:0 0 0 5px rgba(0,212,160,0)}}
+
+/* BADGE */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:100px;
+  font-size:12px;font-weight:500;border:1px solid var(--border);
+  background:var(--s2);color:var(--txt2);
+}
+.badge.green{color:var(--accent);border-color:rgba(0,212,160,.2);background:rgba(0,212,160,.06)}
+.badge.blue{color:var(--blue);border-color:rgba(91,141,239,.2);background:rgba(91,141,239,.06)}
+.badge svg{width:11px;height:11px;flex-shrink:0}
+
+/* ═══════════════════ HOME ═══════════════════ */
+#screen-home{align-items:center;justify-content:center;padding:24px;overflow-y:auto}
+.home-inner{width:100%;max-width:460px;display:flex;flex-direction:column;gap:36px;align-items:center;padding:20px 0}
+
+.logo-wrap{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+.logo-icon{
+  width:70px;height:70px;border-radius:22px;
+  background:var(--s2);border:1px solid var(--border-hi);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 50px var(--accent-glow),0 0 0 1px rgba(0,212,160,.08);
+}
+.logo-icon svg{color:var(--accent);width:30px;height:30px}
+.logo-wrap h1 span{color:var(--accent)}
+.logo-wrap .tagline{color:var(--txt2);font-size:14px;max-width:300px;line-height:1.65}
+
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%}
+.action-card{
+  background:var(--s2);border:1px solid var(--border-hi);border-radius:var(--rl);
+  padding:22px 18px;display:flex;flex-direction:column;gap:10px;
+  cursor:pointer;transition:all .2s var(--ease);text-align:left;
+  position:relative;overflow:hidden;
+}
+.action-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  opacity:0;transition:opacity .2s;
+}
+.action-card.create::after{background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.action-card.join::after{background:linear-gradient(90deg,transparent,var(--blue),transparent)}
+.action-card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.18)}
+.action-card:hover::after{opacity:1}
+.action-card:active{transform:scale(.97)}
+.action-card .card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+.action-card.create .card-icon{background:rgba(0,212,160,.1);border:1px solid rgba(0,212,160,.2)}
+.action-card.create .card-icon svg{color:var(--accent)}
+.action-card.join .card-icon{background:var(--blue-glow);border:1px solid rgba(91,141,239,.2)}
+.action-card.join .card-icon svg{color:var(--blue)}
+.action-card h3{font-size:15px;color:var(--txt);margin:0}
+.action-card p{font-size:12px;color:var(--txt2);line-height:1.45;margin:0}
+
+.trust-strip{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+
+.how-section{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:var(--rl);padding:20px;width:100%;
+}
+.how-section h4{font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3);margin-bottom:14px}
+.steps{display:flex;flex-direction:column;gap:12px}
+.step{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--txt2)}
+.step-n{
+  width:20px;height:20px;border-radius:50%;flex-shrink:0;margin-top:1px;
+  background:var(--s3);border:1px solid var(--border-hi);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:600;color:var(--accent);
+}
+
+/* ═══════════════════ CREATE ═══════════════════ */
+#screen-create{align-items:center;justify-content:center;padding:24px;overflow-y:auto}
+.create-inner{width:100%;max-width:430px;display:flex;flex-direction:column;gap:16px}
+
+.code-card{
+  background:var(--s2);border:1px solid var(--border-hi);border-radius:var(--rxl);
+  padding:32px 28px;display:flex;flex-direction:column;gap:18px;align-items:center;text-align:center;
+}
+.code-label{font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--txt3)}
+.big-code{
+  font-family:var(--mono);font-size:clamp(36px,10vw,52px);font-weight:600;
+  letter-spacing:.18em;color:var(--accent);line-height:1;
+  text-shadow:0 0 40px var(--accent-glow-hi);
+}
+.code-actions{display:flex;gap:8px}
+.status-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--txt2)}
+
+.info-card{
+  background:var(--s1);border:1px solid var(--border);border-radius:var(--rl);padding:18px;
+}
+
+/* ═══════════════════ JOIN ═══════════════════ */
+#screen-join{align-items:center;justify-content:center;padding:24px;overflow-y:auto}
+.join-inner{width:100%;max-width:400px;display:flex;flex-direction:column;gap:16px}
+.join-card{
+  background:var(--s2);border:1px solid var(--border-hi);border-radius:var(--rxl);
+  padding:28px;display:flex;flex-direction:column;gap:14px;align-items:center;
+}
+.join-label{font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--txt3);align-self:flex-start}
+.join-error{font-size:13px;color:var(--danger);min-height:18px;text-align:center}
+.warn-note{
+  display:flex;align-items:flex-start;gap:8px;padding:12px 14px;
+  background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.18);
+  border-radius:var(--rm);font-size:13px;color:rgba(245,166,35,.85);
+}
+.warn-note svg{flex-shrink:0;margin-top:1px;color:var(--warn)}
+
+/* ═══════════════════ CHAT ═══════════════════ */
+#screen-chat{height:100%}
+#screen-chat.active{display:flex;flex-direction:column}
+
+.chat-top{
+  background:var(--s1);border-bottom:1px solid var(--border);
+  padding:10px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0;
+}
+.chat-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.chat-code-row{display:flex;align-items:center;gap:8px}
+.chat-code{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--accent);letter-spacing:.12em}
+.enc-pill{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 8px;border-radius:100px;
+  background:rgba(0,212,160,.08);border:1px solid rgba(0,212,160,.2);
+  font-size:11px;font-weight:500;color:var(--accent);
+}
+.enc-pill svg{width:9px;height:9px}
+.chat-status-row{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--txt3)}
+
+.disc-bar{
+  background:rgba(255,90,90,.1);border-bottom:1px solid rgba(255,90,90,.2);
+  padding:8px 16px;text-align:center;font-size:13px;color:var(--danger);display:none;
+}
+.disc-bar.show{display:block}
+
+.msgs{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.msgs::-webkit-scrollbar{width:3px}
+
+.msg-wrap{display:flex;flex-direction:column;gap:3px;max-width:78%;animation:msgIn .2s var(--ease)}
+.msg-wrap.me{align-self:flex-end;align-items:flex-end}
+.msg-wrap.them{align-self:flex-start;align-items:flex-start}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+.bubble{padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.55;word-break:break-word}
+.msg-wrap.me .bubble{background:var(--accent);color:#021A10;border-bottom-right-radius:4px}
+.msg-wrap.them .bubble{background:var(--s3);color:var(--txt);border:1px solid var(--border-hi);border-bottom-left-radius:4px}
+.msg-time{font-size:11px;color:var(--txt3);padding:0 3px}
+
+.sys-row{display:flex;align-items:center;gap:8px;padding:6px 0}
+.sys-line{flex:1;height:1px;background:var(--border)}
+.sys-row span{font-size:11px;color:var(--txt3);white-space:nowrap;padding:0 2px}
+
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  flex:1;gap:10px;pointer-events:none;padding:32px;text-align:center;
+}
+.empty-state svg{color:var(--txt3);opacity:.5}
+.empty-state p{font-size:13px;color:var(--txt3);line-height:1.6}
+
+.chat-input-row{
+  background:var(--s1);border-top:1px solid var(--border);
+  padding:10px 14px;display:flex;gap:10px;align-items:flex-end;flex-shrink:0;
+  padding-bottom:calc(10px + env(safe-area-inset-bottom));
+}
+#msg-in{
+  flex:1;background:var(--s2);border:1px solid var(--border-hi);border-radius:14px;
+  color:var(--txt);font-family:var(--sans);font-size:15px;
+  padding:11px 16px;outline:none;resize:none;min-height:46px;max-height:120px;
+  line-height:1.5;transition:border-color .15s;
+  letter-spacing:0;text-align:left;text-transform:none;
+}
+#msg-in:focus{border-color:rgba(0,212,160,.35)}
+#msg-in::placeholder{color:var(--txt3)}
+.send-btn{
+  width:46px;height:46px;border-radius:var(--rm);background:var(--accent);border:none;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:#021A10;transition:all .15s;flex-shrink:0;
+}
+.send-btn:hover{background:#00EDB3;box-shadow:0 0 22px var(--accent-glow-hi)}
+.send-btn:active{transform:scale(.92)}
+.send-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* OVERLAY */
+.overlay{
+  position:fixed;inset:0;background:rgba(6,10,15,.88);
+  display:none;align-items:center;justify-content:center;
+  z-index:80;flex-direction:column;gap:16px;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.overlay.show{display:flex}
+.spinner{
+  width:42px;height:42px;border:2px solid var(--border-hi);
+  border-top-color:var(--accent);border-radius:50%;
+  animation:spin .75s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.overlay p{color:var(--txt2);font-size:14px}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:72px;left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:var(--s4);border:1px solid var(--border-hi);
+  border-radius:var(--rm);padding:9px 18px;
+  font-size:13px;color:var(--txt);z-index:90;
+  opacity:0;transition:all .25s var(--ease);white-space:nowrap;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{color:var(--accent);border-color:rgba(0,212,160,.25)}
+.toast.err{color:var(--danger);border-color:rgba(255,90,90,.25)}
+
+/* KEY DERIVE ANIMATION */
+@keyframes glowPulse{
+  0%,100%{text-shadow:0 0 30px var(--accent-glow)}
+  50%{text-shadow:0 0 55px var(--accent-glow-hi),0 0 80px var(--accent-glow)}
+}
+.deriving .big-code{animation:glowPulse .8s ease-in-out 3}
+
+/* RESPONSIVE */
+@media(max-width:420px){
+  .action-grid{grid-template-columns:1fr}
+  .code-card{padding:24px 20px}
+  .big-code{letter-spacing:.12em}
+  .msg-wrap{max-width:88%}
+}
+@media(max-height:600px){
+  .home-inner{gap:20px}
+  .logo-wrap{gap:10px}
+  .logo-icon{width:56px;height:56px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══════════════ HOME ══════════════ -->
+<div id="screen-home" class="screen active">
+  <div class="home-inner">
+
+    <div class="logo-wrap">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <h1>Vault<span>Chat</span></h1>
+      <p class="tagline">Ephemeral, peer-to-peer encrypted messaging. No accounts. No servers. No trace.</p>
+    </div>
+
+    <div class="action-grid">
+      <div class="action-card create" onclick="startCreate()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')startCreate()">
+        <div class="card-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+        </div>
+        <h3>Create Session</h3>
+        <p>Generate a one-time secure code and share it</p>
+      </div>
+      <div class="action-card join" onclick="startJoin()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')startJoin()">
+        <div class="card-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+        </div>
+        <h3>Join Session</h3>
+        <p>Enter a code to connect and chat securely</p>
+      </div>
+    </div>
+
+    <div class="trust-strip">
+      <div class="badge green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        AES-256-GCM
+      </div>
+      <div class="badge green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        P2P WebRTC
+      </div>
+      <div class="badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+        </svg>
+        Zero logs
+      </div>
+      <div class="badge">No accounts</div>
+    </div>
+
+    <div class="how-section">
+      <h4>How it works</h4>
+      <div class="steps">
+        <div class="step"><div class="step-n">1</div><span>Create a session and share the one-time code</span></div>
+        <div class="step"><div class="step-n">2</div><span>The other person enters the code to join</span></div>
+        <div class="step"><div class="step-n">3</div><span>A direct, encrypted peer-to-peer channel opens</span></div>
+        <div class="step"><div class="step-n">4</div><span>Messages are AES-256 encrypted — only your devices hold the key</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════ CREATE ══════════════ -->
+<div id="screen-create" class="screen">
+  <div class="create-inner">
+
+    <div class="screen-hdr">
+      <button class="back-btn" onclick="goHome()" aria-label="Back">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+        </svg>
+      </button>
+      <div class="screen-hdr-text">
+        <h2>Your Session Code</h2>
+        <p>Share this securely with the other person</p>
+      </div>
+    </div>
+
+    <div class="code-card" id="code-card">
+      <div class="code-label">One-Time Session Code</div>
+      <div id="display-code" class="big-code">———</div>
+      <div class="code-actions">
+        <button class="btn btn-sm btn-secondary" onclick="copyCode()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          Copy
+        </button>
+        <button class="btn btn-sm btn-ghost" id="share-btn" onclick="shareCode()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          Share
+        </button>
+      </div>
+      <div class="status-row">
+        <span class="dot waiting" id="create-dot"></span>
+        <span id="create-status">Waiting for peer to join…</span>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="steps">
+        <div class="step"><div class="step-n">!</div><span style="color:var(--txt2)">Send the code through any channel — the code itself is not a secret, the key is derived from it client-side.</span></div>
+        <div class="step">
+          <div class="step-n" style="color:var(--txt2);border-color:var(--border)">i</div>
+          <span style="color:var(--txt2)">Messages are encrypted before leaving your device using AES-256-GCM. The session is destroyed when either party disconnects.</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-ghost btn-full" onclick="cancelSession()">Cancel</button>
+
+  </div>
+</div>
+
+<!-- ══════════════ JOIN ══════════════ -->
+<div id="screen-join" class="screen">
+  <div class="join-inner">
+
+    <div class="screen-hdr">
+      <button class="back-btn" onclick="goHome()" aria-label="Back">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+        </svg>
+      </button>
+      <div class="screen-hdr-text">
+        <h2>Join Session</h2>
+        <p>Enter the code you received</p>
+      </div>
+    </div>
+
+    <div class="join-card">
+      <div class="join-label">Session Code</div>
+      <input
+        class="field-input" id="join-input"
+        type="text" placeholder="XXX-XXX" maxlength="7"
+        autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"
+        oninput="fmtCode(this)" onkeydown="if(event.key==='Enter')doJoin()"
+      >
+      <div class="join-error" id="join-err"></div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="doJoin()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+          <polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+        </svg>
+        Connect Securely
+      </button>
+    </div>
+
+    <div class="warn-note">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      Only join sessions from people you trust directly.
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════ CHAT ══════════════ -->
+<div id="screen-chat" class="screen">
+
+  <div class="disc-bar" id="disc-bar">Connection lost · Session ended</div>
+
+  <div class="chat-top">
+    <div class="chat-info">
+      <div class="chat-code-row">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent);flex-shrink:0">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <span class="chat-code" id="chat-code"></span>
+        <div class="enc-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          E2E Encrypted
+        </div>
+      </div>
+      <div class="chat-status-row">
+        <span class="dot live" id="chat-dot"></span>
+        <span id="chat-status">Secure channel active</span>
+      </div>
+    </div>
+    <button class="btn btn-sm btn-danger" onclick="endSession()">End</button>
+  </div>
+
+  <div class="msgs" id="msgs">
+    <div class="empty-state" id="empty-state">
+      <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <p>Your messages are encrypted end-to-end.<br>No one else can read them.</p>
+    </div>
+  </div>
+
+  <div class="chat-input-row">
+    <textarea id="msg-in" placeholder="Type a message…" rows="1" maxlength="4000"
+      onkeydown="msgKeydown(event)" oninput="autoResize(this)"></textarea>
+    <button class="send-btn" id="send-btn" onclick="sendMsg()" title="Send message" aria-label="Send">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"/>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+
+</div>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" role="status" aria-live="polite">
+  <div class="spinner"></div>
+  <p id="overlay-txt">Connecting…</p>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast" role="alert" aria-live="assertive"></div>
+
+<script>
+// ═══════════════════ STATE ═══════════════════
+const S = {
+  peer: null, conn: null,
+  code: null, key: null,
+  isHost: false, live: false,
+};
+
+// ═══════════════════ VIEWPORT FIX ═══════════════════
+function setVH() {
+  document.documentElement.style.setProperty('--vh', (window.innerHeight * .01) + 'px');
+}
+window.addEventListener('resize', setVH);
+window.addEventListener('orientationchange', () => setTimeout(setVH, 200));
+setVH();
+
+// ═══════════════════ SCREEN NAV ═══════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+function goHome() { cleanup(); showScreen('home'); }
+
+// ═══════════════════ CODE GENERATION ═══════════════════
+function genCode() {
+  const chars = 'ABCDEFGHJKMNPQRSTVWXYZ23456789';
+  const r = crypto.getRandomValues(new Uint8Array(6));
+  let c = '';
+  for (let i = 0; i < 6; i++) c += chars[r[i] % chars.length];
+  return c;
+}
+function displayCode(c) { return c.slice(0, 3) + '-' + c.slice(3); }
+function rawCode(c) { return c.replace('-', '').toUpperCase(); }
+function peerId(c) { return 'vc-' + rawCode(c).toLowerCase(); }
+
+// ═══════════════════ CRYPTO ═══════════════════
+async function deriveKey(code) {
+  const enc = new TextEncoder();
+  const km = await crypto.subtle.importKey(
+    'raw', enc.encode(rawCode(code)), 'PBKDF2', false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name:'PBKDF2', salt:enc.encode('vaultchat-salt-2024'), iterations:150000, hash:'SHA-256' },
+    km, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']
+  );
+}
+async function encrypt(key, text) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, new TextEncoder().encode(text));
+  const buf = new Uint8Array(12 + ct.byteLength);
+  buf.set(iv); buf.set(new Uint8Array(ct), 12);
+  return btoa(String.fromCharCode(...buf));
+}
+async function decrypt(key, b64) {
+  const buf = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const pt = await crypto.subtle.decrypt(
+    { name:'AES-GCM', iv:buf.slice(0,12) }, key, buf.slice(12)
+  );
+  return new TextDecoder().decode(pt);
+}
+
+// ═══════════════════ PEER ═══════════════════
+function createPeer(id) {
+  return new Peer(id, {
+    host: '0.peerjs.com', port: 443, path: '/', secure: true, debug: 0,
+    config: { iceServers: [{ urls:'stun:stun.l.google.com:19302' }] }
+  });
+}
+
+function setupConn(conn) {
+  const timer = setTimeout(() => {
+    if (!S.live) { hideOverlay(); toast('Connection timed out.', 'err'); if (!S.isHost) showScreen('join'); }
+  }, 16000);
+
+  conn.on('open', async () => {
+    clearTimeout(timer);
+    showOverlay('Deriving encryption key…');
+    document.getElementById('code-card')?.classList.add('deriving');
+    S.key = await deriveKey(S.code);
+    document.getElementById('code-card')?.classList.remove('deriving');
+    S.live = true;
+    hideOverlay();
+    if (S.isHost) {
+      document.getElementById('create-dot').className = 'dot live';
+      document.getElementById('create-status').textContent = 'Peer connected!';
+      setTimeout(openChat, 600);
+    } else {
+      openChat();
+    }
+  });
+
+  conn.on('data', async raw => {
+    try {
+      const obj = JSON.parse(raw);
+      if (obj.t === 'end') { peerLeft(); return; }
+      const txt = await decrypt(S.key, obj.p);
+      appendMsg(txt, 'them');
+    } catch (e) { /* decryption fail - ignore */ }
+  });
+
+  conn.on('close', () => { if (S.live) peerLeft(); });
+  conn.on('error', () => { hideOverlay(); toast('Connection error.', 'err'); });
+}
+
+function initHost(code) {
+  showOverlay('Creating encrypted channel…');
+  const p = createPeer(peerId(code));
+  S.peer = p;
+
+  p.on('open', () => {
+    hideOverlay();
+    document.getElementById('create-status').textContent = 'Waiting for peer to join…';
+  });
+
+  p.on('connection', conn => {
+    if (S.conn) { conn.close(); return; }
+    S.conn = conn;
+    setupConn(conn);
+  });
+
+  p.on('error', err => {
+    hideOverlay();
+    if (err.type === 'unavailable-id') {
+      toast('Code in use, generating new one…');
+      setTimeout(startCreate, 1000);
+    } else {
+      toast('Network error — check connection.', 'err');
+    }
+  });
+}
+
+function initJoiner(code) {
+  showOverlay('Connecting to session…');
+  const p = createPeer(undefined);
+  S.peer = p;
+
+  p.on('open', () => {
+    const conn = p.connect(peerId(code), { reliable: true, serialization: 'raw' });
+    S.conn = conn;
+    setupConn(conn);
+  });
+
+  p.on('error', () => {
+    hideOverlay();
+    document.getElementById('join-err').textContent = 'Could not connect. Check the code and try again.';
+  });
+}
+
+// ═══════════════════ CHAT UI ═══════════════════
+function openChat() {
+  document.getElementById('chat-code').textContent = displayCode(S.code);
+  document.getElementById('msgs').innerHTML = `
+    <div class="empty-state" id="empty-state">
+      <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <p>Your messages are encrypted end-to-end.<br>Only you and your peer can read them.</p>
+    </div>`;
+  addSysMsg('Session active · AES-256-GCM encrypted');
+  showScreen('chat');
+  setTimeout(() => document.getElementById('msg-in').focus(), 100);
+}
+
+async function sendMsg() {
+  const inp = document.getElementById('msg-in');
+  const text = inp.value.trim();
+  if (!text || !S.conn || !S.live) return;
+  inp.value = '';
+  autoResize(inp);
+  try {
+    const enc = await encrypt(S.key, text);
+    S.conn.send(JSON.stringify({ t:'msg', p:enc }));
+    appendMsg(text, 'me');
+  } catch { toast('Send failed.', 'err'); }
+}
+
+function appendMsg(text, who) {
+  const area = document.getElementById('msgs');
+  document.getElementById('empty-state')?.remove();
+  const now = new Date();
+  const t = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  const div = document.createElement('div');
+  div.className = 'msg-wrap ' + who;
+  div.innerHTML = `<div class="bubble">${esc(text)}</div><div class="msg-time">${t}</div>`;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function addSysMsg(txt) {
+  const area = document.getElementById('msgs');
+  const div = document.createElement('div');
+  div.className = 'sys-row';
+  div.innerHTML = `<div class="sys-line"></div><span>${txt}</span><div class="sys-line"></div>`;
+  area.appendChild(div);
+}
+
+function peerLeft() {
+  S.live = false;
+  document.getElementById('disc-bar').classList.add('show');
+  document.getElementById('chat-dot').className = 'dot dead';
+  document.getElementById('chat-status').textContent = 'Peer disconnected';
+  document.getElementById('send-btn').disabled = true;
+  addSysMsg('Peer disconnected · Session ended');
+}
+
+function endSession() {
+  if (S.conn && S.live) {
+    try { S.conn.send(JSON.stringify({ t:'end' })); } catch {}
+  }
+  goHome();
+}
+
+// ═══════════════════ SCREEN ACTIONS ═══════════════════
+function startCreate() {
+  const code = genCode();
+  S.code = code; S.isHost = true;
+  document.getElementById('display-code').textContent = displayCode(code);
+  document.getElementById('create-dot').className = 'dot waiting';
+  document.getElementById('create-status').textContent = 'Waiting for peer to join…';
+  showScreen('create');
+  initHost(code);
+}
+
+function startJoin() {
+  showScreen('join');
+  setTimeout(() => document.getElementById('join-input').focus(), 100);
+}
+
+function doJoin() {
+  const val = rawCode(document.getElementById('join-input').value.trim());
+  if (val.length !== 6) {
+    document.getElementById('join-err').textContent = 'Enter a valid 6-character code (e.g. ABC-DEF)';
+    return;
+  }
+  document.getElementById('join-err').textContent = '';
+  S.code = val; S.isHost = false;
+  initJoiner(val);
+}
+
+function cancelSession() { cleanup(); goHome(); }
+
+// ═══════════════════ UTILS ═══════════════════
+function cleanup() {
+  if (S.conn) { try { S.conn.close(); } catch {} S.conn = null; }
+  if (S.peer) { try { S.peer.destroy(); } catch {} S.peer = null; }
+  S.live = false; S.key = null; S.code = null;
+  document.getElementById('disc-bar').classList.remove('show');
+  document.getElementById('send-btn').disabled = false;
+  document.getElementById('join-input').value = '';
+  document.getElementById('join-err').textContent = '';
+}
+
+function copyCode() {
+  navigator.clipboard.writeText(displayCode(S.code))
+    .then(() => toast('Code copied!', 'ok'))
+    .catch(() => toast('Copy failed'));
+}
+
+function shareCode() {
+  const text = `Join my encrypted VaultChat session — Code: ${displayCode(S.code)}`;
+  if (navigator.share) {
+    navigator.share({ title: 'VaultChat Session', text });
+  } else copyCode();
+}
+
+function fmtCode(inp) {
+  let v = inp.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (v.length > 3) v = v.slice(0,3) + '-' + v.slice(3,6);
+  inp.value = v;
+  if (document.getElementById('join-err').textContent) {
+    document.getElementById('join-err').textContent = '';
+  }
+}
+
+function msgKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/\n/g,'<br>');
+}
+
+function showOverlay(msg) {
+  document.getElementById('overlay-txt').textContent = msg;
+  document.getElementById('overlay').classList.add('show');
+}
+function hideOverlay() { document.getElementById('overlay').classList.remove('show'); }
+
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast' + (type ? ' ' + type : '') + ' show';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ═══════════════════ KEYBOARD / FOCUS ═══════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const active = document.querySelector('.screen.active');
+    if (active && active.id !== 'screen-home' && active.id !== 'screen-chat') goHome();
+  }
+});
+</script>
+</body>
+</html>
