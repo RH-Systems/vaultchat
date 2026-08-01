@@ -97,8 +97,8 @@ button{font-family:var(--sans);cursor:pointer;border:none;outline:none}
   transition:all .15s var(--ease);white-space:nowrap;user-select:none;
 }
 .btn:active{transform:scale(.97)}
-.btn-primary{background:var(--accent);color:#03130D}
-.btn-primary:hover{background:#00EDB3;box-shadow:0 0 28px var(--accent-glow-hi)}
+.btn-primary{background:var(--accent);color:#15171C}
+.btn-primary:hover{background:#FFFFFF;box-shadow:0 0 28px var(--accent-glow-hi)}
 .btn-secondary{background:var(--s3);color:var(--txt);border:1px solid var(--border-hi)}
 .btn-secondary:hover{background:var(--s4);border-color:var(--border-bright)}
 .btn-ghost{background:transparent;color:var(--txt2);border:1px solid var(--border)}
@@ -279,10 +279,47 @@ button{font-family:var(--sans);cursor:pointer;border:none;outline:none}
 .chat-status-row{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--txt3)}
 
 .disc-bar{
-  background:rgba(255,90,90,.1);border-bottom:1px solid rgba(255,90,90,.2);
-  padding:8px 16px;text-align:center;font-size:13px;color:var(--danger);display:none;
+  background:rgba(255,90,90,.08);border-bottom:1px solid rgba(255,90,90,.18);
+  padding:10px 14px;display:none;flex-direction:column;gap:10px;flex-shrink:0;
 }
-.disc-bar.show{display:block}
+.disc-bar.show{display:flex}
+.disc-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.disc-row .disc-label{font-size:13px;color:var(--danger);font-weight:500;flex:1;min-width:120px}
+.btn-xs{padding:6px 12px;font-size:12px;border-radius:8px}
+.reconnect-sub{display:none;align-items:center;gap:10px;flex-wrap:wrap}
+.reconnect-sub.show{display:flex}
+.reconnect-code{font-family:var(--mono);font-weight:600;letter-spacing:.1em;color:var(--txt);font-size:14px;background:var(--s3);border:1px solid var(--border-hi);padding:5px 10px;border-radius:8px}
+.reconnect-input{
+  flex:1;min-width:110px;background:var(--s2);border:1px solid var(--border-hi);border-radius:8px;
+  color:var(--txt);font-family:var(--mono);font-size:14px;letter-spacing:.1em;text-transform:uppercase;
+  padding:7px 10px;outline:none;
+}
+.reconnect-input:focus{border-color:rgba(255,255,255,.35)}
+.reconnect-status{font-size:12px;color:var(--txt3)}
+
+/* FILE ATTACHMENTS */
+.file-card{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;
+  background:var(--s3);border:1px solid var(--border-hi);min-width:190px;max-width:260px;
+  text-decoration:none;transition:border-color .15s;
+}
+.msg-wrap.me .file-card{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.16)}
+.file-card:hover{border-color:var(--border-bright)}
+.file-card-icon{
+  width:36px;height:36px;border-radius:10px;background:var(--s2);border:1px solid var(--border-hi);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--txt2);
+}
+.msg-wrap.me .file-card-icon{background:rgba(0,0,0,.15);color:#15171C}
+.file-card-icon svg{width:16px;height:16px}
+.file-card-meta{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.file-card-name{font-size:13px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msg-wrap.me .file-card-name{color:#15171C}
+.file-card-size{font-size:11px;color:var(--txt3)}
+.msg-wrap.me .file-card-size{color:rgba(21,23,28,.65)}
+.img-attach{max-width:240px;border-radius:14px;overflow:hidden;border:1px solid var(--border-hi);cursor:pointer;display:block}
+.img-attach img{display:block;width:100%;height:auto;max-height:280px;object-fit:cover}
+.attach-pending{opacity:.55;pointer-events:none}
+.attach-pending .file-card-icon{animation:spin 1s linear infinite}
 
 .msgs{flex:1;overflow-y:auto;padding:var(--sp-4) var(--sp-4);display:flex;flex-direction:column;gap:2px;scroll-behavior:smooth}
 .msgs::-webkit-scrollbar{width:3px}
@@ -355,7 +392,7 @@ button{font-family:var(--sans);cursor:pointer;border:none;outline:none}
   padding:var(--sp-3) var(--sp-4);display:flex;flex-direction:column;gap:6px;flex-shrink:0;
   padding-bottom:calc(var(--sp-3) + env(safe-area-inset-bottom));
 }
-.chat-input-main{display:flex;gap:10px;align-items:flex-end}
+.chat-input-main{display:flex;gap:8px;align-items:flex-end}
 .composer-wrap{flex:1;display:flex;flex-direction:column}
 #msg-in{
   flex:1;background:var(--s2);border:1px solid var(--border-hi);border-radius:14px;
@@ -370,14 +407,35 @@ button{font-family:var(--sans);cursor:pointer;border:none;outline:none}
 .composer-hint kbd{font-family:var(--mono);background:var(--s3);border:1px solid var(--border-hi);border-radius:4px;padding:1px 5px;font-size:10px}
 #char-count{transition:color .15s}
 #char-count.near-limit{color:var(--warn)}
+.attach-btn{
+  width:46px;height:46px;border-radius:var(--rm);background:var(--s2);border:1px solid var(--border-hi);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--txt2);transition:all .15s;flex-shrink:0;
+}
+.attach-btn:hover{color:var(--txt);border-color:var(--border-bright);background:var(--s3)}
+.attach-btn svg{width:18px;height:18px}
 .send-btn{
   width:46px;height:46px;border-radius:var(--rm);background:var(--accent);border:none;
   cursor:pointer;display:flex;align-items:center;justify-content:center;
   color:#15171C;transition:all .15s;flex-shrink:0;
 }
-.send-btn:hover{background:#00EDB3;box-shadow:0 0 22px var(--accent-glow-hi)}
+.send-btn:hover{background:#FFFFFF;box-shadow:0 0 22px var(--accent-glow-hi)}
 .send-btn:active{transform:scale(.92)}
 .send-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* HEADER ICON BUTTONS */
+.icon-btn{
+  width:34px;height:34px;border-radius:10px;background:var(--s2);border:1px solid var(--border-hi);
+  color:var(--txt2);display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all .15s;flex-shrink:0;position:relative;
+}
+.icon-btn:hover{color:var(--txt);border-color:var(--border-bright)}
+.icon-btn svg{width:16px;height:16px}
+.icon-btn.active{color:var(--accent);border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.06)}
+.icon-btn.active::after{
+  content:'';position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;
+  background:var(--accent);box-shadow:0 0 0 2px var(--s1);
+}
 
 /* OVERLAY */
 .overlay{
@@ -614,7 +672,25 @@ button{font-family:var(--sans);cursor:pointer;border:none;outline:none}
 <!-- ══════════════ CHAT ══════════════ -->
 <div id="screen-chat" class="screen">
 
-  <div class="disc-bar" id="disc-bar">Connection lost · Session ended</div>
+  <div class="disc-bar" id="disc-bar">
+    <div class="disc-row" id="disc-row-main">
+      <span class="disc-label">Connection lost — reconnect without losing this chat</span>
+      <button class="btn btn-xs btn-secondary" onclick="showReconnect('host')">New code</button>
+      <button class="btn btn-xs btn-secondary" onclick="showReconnect('join')">Enter code</button>
+    </div>
+    <div class="reconnect-sub" id="reconnect-host-row">
+      <span style="font-size:12px;color:var(--txt2)">Share new code:</span>
+      <span class="reconnect-code" id="reconnect-code">———</span>
+      <button class="btn btn-xs btn-secondary" onclick="copyReconnectCode()">Copy</button>
+      <span class="reconnect-status" id="reconnect-status">Waiting for peer…</span>
+      <button class="btn btn-xs btn-ghost" onclick="resetReconnectPanel()" style="margin-left:auto">Cancel</button>
+    </div>
+    <div class="reconnect-sub" id="reconnect-join-row">
+      <input class="reconnect-input" id="reconnect-input" maxlength="7" placeholder="XXX-XXX" oninput="fmtCode(this)" onkeydown="if(event.key==='Enter')doReconnectJoin()">
+      <button class="btn btn-xs btn-primary" onclick="doReconnectJoin()">Connect</button>
+      <button class="btn btn-xs btn-ghost" onclick="resetReconnectPanel()">Cancel</button>
+    </div>
+  </div>
 
   <div class="chat-top">
     <div class="chat-info">
@@ -636,6 +712,12 @@ button{font-family:var(--sans);cursor:pointer;border:none;outline:none}
         <span id="chat-status">Secure channel active</span>
       </div>
     </div>
+    <button class="icon-btn" id="notif-btn" onclick="toggleNotifications()" title="Enable notifications" aria-label="Toggle notifications">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+    </button>
     <button class="btn btn-sm btn-danger" onclick="endSession()">End</button>
   </div>
 
@@ -662,6 +744,12 @@ button{font-family:var(--sans);cursor:pointer;border:none;outline:none}
       <span style="font-size:12px;color:var(--txt3)">Peer is typing…</span>
     </div>
     <div class="chat-input-main">
+      <button class="attach-btn" onclick="document.getElementById('file-in').click()" title="Attach a file" aria-label="Attach a file">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+        </svg>
+      </button>
+      <input type="file" id="file-in" style="display:none" onchange="handleFileSelect(event)">
       <div class="composer-wrap">
         <textarea id="msg-in" placeholder="Type a message…" rows="1" maxlength="4000"
           onkeydown="msgKeydown(event)" oninput="autoResize(this);handleTyping();updateCharCount()" aria-label="Message"></textarea>
@@ -701,7 +789,9 @@ const S = {
   typingTimeout: null, peerTypingTimeout: null,
   atBottom: true, unread: 0,
   toastQueue: [], toastBusy: false,
+  notifEnabled: false,
 };
+const MAX_FILE_BYTES = 8 * 1024 * 1024;
 
 // ═══════════════════ VIEWPORT FIX ═══════════════════
 function setVH() {
@@ -755,6 +845,22 @@ async function decrypt(key, b64) {
   );
   return new TextDecoder().decode(pt);
 }
+async function encryptBytes(key, arrBuf) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, arrBuf);
+  const buf = new Uint8Array(12 + ct.byteLength);
+  buf.set(iv); buf.set(new Uint8Array(ct), 12);
+  let bin = ''; const chunk = 0x8000;
+  for (let i = 0; i < buf.length; i += chunk) bin += String.fromCharCode(...buf.subarray(i, i + chunk));
+  return btoa(bin);
+}
+async function decryptBytes(key, b64) {
+  const buf = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const pt = await crypto.subtle.decrypt(
+    { name:'AES-GCM', iv:buf.slice(0,12) }, key, buf.slice(12)
+  );
+  return new Uint8Array(pt);
+}
 
 // ═══════════════════ PEER ═══════════════════
 function createPeer(id) {
@@ -764,9 +870,18 @@ function createPeer(id) {
   });
 }
 
-function setupConn(conn) {
+function setupConn(conn, reconnectMode) {
   const timer = setTimeout(() => {
-    if (!S.live) { hideOverlay(); toast('Connection timed out.', 'err'); if (!S.isHost) showScreen('join'); }
+    if (!S.live) {
+      hideOverlay();
+      if (reconnectMode) {
+        toast('Connection timed out.', 'err');
+        document.getElementById('reconnect-status').textContent = 'Timed out — try again';
+      } else {
+        toast('Connection timed out.', 'err');
+        if (!S.isHost) showScreen('join');
+      }
+    }
   }, 16000);
 
   conn.on('open', async () => {
@@ -777,7 +892,15 @@ function setupConn(conn) {
     document.getElementById('code-card')?.classList.remove('deriving');
     S.live = true;
     hideOverlay();
-    if (S.isHost) {
+    if (reconnectMode) {
+      resetReconnectPanel();
+      document.getElementById('disc-bar').classList.remove('show');
+      document.getElementById('chat-dot').className = 'dot live';
+      document.getElementById('chat-status').textContent = 'Secure channel active';
+      document.getElementById('send-btn').disabled = false;
+      document.getElementById('chat-code').textContent = displayCode(S.code);
+      addSysMsg('Reconnected · new encrypted channel established');
+    } else if (S.isHost) {
       document.getElementById('create-dot').className = 'dot live';
       document.getElementById('create-status').textContent = 'Peer connected!';
       setTimeout(openChat, 600);
@@ -792,13 +915,24 @@ function setupConn(conn) {
       if (obj.t === 'end') { peerLeft(); return; }
       if (obj.t === 'typing') { setPeerTyping(!!obj.v); return; }
       setPeerTyping(false);
+      if (obj.t === 'file') {
+        const bytes = await decryptBytes(S.key, obj.p);
+        appendFileMsg({ name: obj.name, size: obj.size, mime: obj.mime, bytes }, 'them');
+        notifyIncoming(obj.name, true);
+        return;
+      }
       const txt = await decrypt(S.key, obj.p);
       appendMsg(txt, 'them');
+      notifyIncoming(txt, false);
     } catch (e) { /* decryption fail - ignore */ }
   });
 
   conn.on('close', () => { if (S.live) peerLeft(); });
-  conn.on('error', () => { hideOverlay(); toast('Connection error.', 'err'); });
+  conn.on('error', () => {
+    hideOverlay();
+    if (reconnectMode) document.getElementById('reconnect-status').textContent = 'Connection error — try again';
+    toast('Connection error.', 'err');
+  });
 }
 
 function initHost(code) {
@@ -861,6 +995,9 @@ function openChat() {
   updateScrollLatest();
   document.getElementById('char-count').textContent = '0 / 4000';
   document.getElementById('typing-row').classList.remove('show');
+  document.getElementById('disc-bar').classList.remove('show');
+  resetReconnectPanel();
+  updateNotifBtn();
   addSysMsg('Session active · AES-256-GCM encrypted');
   showScreen('chat');
   document.getElementById('msgs').addEventListener('scroll', onMsgsScroll);
@@ -937,16 +1074,25 @@ function renderRich(text) {
   return s;
 }
 
-function appendMsg(text, who) {
+function placeMsgWrap(div, who) {
   const area = document.getElementById('msgs');
   document.getElementById('empty-state')?.remove();
-  const now = new Date();
-  const t = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
   const grouped = S.lastSender === who && (Date.now() - S.lastMsgTime) < 60000;
   S.lastSender = who; S.lastMsgTime = Date.now();
+  div.className += ' ' + who + (grouped ? ' grouped' : '');
+  area.appendChild(div);
+  if (who === 'them' && !S.atBottom) { S.unread++; updateScrollLatest(); }
+  else { area.scrollTop = area.scrollHeight; S.atBottom = true; }
+}
 
+function nowLabel() {
+  const now = new Date();
+  return now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+}
+
+function appendMsg(text, who) {
   const div = document.createElement('div');
-  div.className = 'msg-wrap ' + who + (grouped ? ' grouped' : '');
+  div.className = 'msg-wrap';
   const id = 'm' + Math.random().toString(36).slice(2, 9);
   div.innerHTML = `
     <div class="bubble-row">
@@ -957,11 +1103,83 @@ function appendMsg(text, who) {
         </svg>
       </button>
     </div>
-    <div class="msg-time">${t}</div>`;
-  area.appendChild(div);
+    <div class="msg-time">${nowLabel()}</div>`;
+  placeMsgWrap(div, who);
+}
 
-  if (who === 'them' && !S.atBottom) { S.unread++; updateScrollLatest(); }
-  else { area.scrollTop = area.scrollHeight; S.atBottom = true; }
+// ═══════════════════ ATTACHMENTS ═══════════════════
+function formatBytes(n) {
+  if (n < 1024) return n + ' B';
+  if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+  return (n / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function handleFileSelect(evt) {
+  const file = evt.target.files[0];
+  evt.target.value = '';
+  if (!file) return;
+  if (!S.conn || !S.live) { toast('Not connected.', 'err'); return; }
+  if (file.size > MAX_FILE_BYTES) { toast(`File too large — max ${formatBytes(MAX_FILE_BYTES)}.`, 'err'); return; }
+  sendFile(file);
+}
+
+async function sendFile(file) {
+  const isImg = file.type.startsWith('image/');
+  const div = document.createElement('div');
+  div.className = 'msg-wrap attach-pending';
+  const bubbleId = 'f' + Math.random().toString(36).slice(2, 9);
+  div.innerHTML = fileBubbleHtml(bubbleId, file.name, file.size, isImg ? URL.createObjectURL(file) : null);
+  placeMsgWrap(div, 'me');
+
+  try {
+    const buf = await file.arrayBuffer();
+    const enc = await encryptBytes(S.key, buf);
+    S.conn.send(JSON.stringify({ t:'file', name:file.name, size:file.size, mime:file.type || 'application/octet-stream', p:enc }));
+    div.classList.remove('attach-pending');
+  } catch (e) {
+    toast('File send failed.', 'err');
+    div.remove();
+  }
+}
+
+function fileBubbleHtml(id, name, size, previewUrl) {
+  if (previewUrl) {
+    return `
+      <div class="bubble-row">
+        <a class="img-attach" id="${id}" href="${previewUrl}" target="_blank" rel="noopener"><img src="${previewUrl}" alt="${esc(name)}"></a>
+      </div>
+      <div class="msg-time">${nowLabel()}</div>`;
+  }
+  return `
+    <div class="bubble-row">
+      <a class="file-card" id="${id}" download="${esc(name)}">
+        <div class="file-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/>
+          </svg>
+        </div>
+        <div class="file-card-meta">
+          <span class="file-card-name">${esc(name)}</span>
+          <span class="file-card-size">${formatBytes(size)}</span>
+        </div>
+      </a>
+    </div>
+    <div class="msg-time">${nowLabel()}</div>`;
+}
+
+function appendFileMsg(file, who) {
+  const isImg = (file.mime || '').startsWith('image/');
+  const blob = new Blob([file.bytes], { type: file.mime || 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const div = document.createElement('div');
+  div.className = 'msg-wrap';
+  const id = 'f' + Math.random().toString(36).slice(2, 9);
+  div.innerHTML = fileBubbleHtml(id, file.name, file.size, isImg ? url : null);
+  placeMsgWrap(div, who);
+  if (!isImg) {
+    const a = div.querySelector('.file-card');
+    a.href = url;
+  }
 }
 
 function copyMsg(id, btn) {
@@ -985,14 +1203,114 @@ function addSysMsg(txt) {
   area.appendChild(div);
 }
 
+// ═══════════════════ NOTIFICATIONS ═══════════════════
+function toggleNotifications() {
+  if (!('Notification' in window)) { toast('Notifications aren\'t supported in this browser.', 'err'); return; }
+  if (Notification.permission === 'denied') { toast('Notifications are blocked — check your browser settings.', 'err'); return; }
+  if (Notification.permission === 'granted') {
+    S.notifEnabled = !S.notifEnabled;
+    updateNotifBtn();
+    toast(S.notifEnabled ? 'Notifications enabled.' : 'Notifications muted.', 'ok');
+    return;
+  }
+  Notification.requestPermission().then(perm => {
+    S.notifEnabled = perm === 'granted';
+    updateNotifBtn();
+    toast(S.notifEnabled ? 'Notifications enabled.' : 'Permission denied.', S.notifEnabled ? 'ok' : 'warn');
+  });
+}
+
+function updateNotifBtn() {
+  const btn = document.getElementById('notif-btn');
+  if (!btn) return;
+  btn.classList.toggle('active', S.notifEnabled);
+  btn.title = S.notifEnabled ? 'Notifications on' : 'Enable notifications';
+}
+
+function notifyIncoming(text, isFile) {
+  if (!S.notifEnabled || !('Notification' in window) || Notification.permission !== 'granted') return;
+  if (document.visibilityState === 'visible' && document.hasFocus()) return;
+  try {
+    const body = isFile ? `📎 Sent a file: ${text}` : (text.length > 90 ? text.slice(0, 90) + '…' : text);
+    const n = new Notification('New encrypted message', { body, tag: 'vaultchat-msg', renotify: true });
+    n.onclick = () => { window.focus(); n.close(); };
+  } catch (e) {}
+}
+
 function peerLeft() {
   S.live = false;
   setPeerTyping(false);
+  resetReconnectPanel();
   document.getElementById('disc-bar').classList.add('show');
   document.getElementById('chat-dot').className = 'dot dead';
   document.getElementById('chat-status').textContent = 'Peer disconnected';
   document.getElementById('send-btn').disabled = true;
   addSysMsg('Peer disconnected · Session ended');
+}
+
+// ═══════════════════ RECONNECT ═══════════════════
+function teardownConnection() {
+  if (S.conn) { try { S.conn.close(); } catch {} S.conn = null; }
+  if (S.peer) { try { S.peer.destroy(); } catch {} S.peer = null; }
+}
+
+function resetReconnectPanel() {
+  document.getElementById('disc-row-main').style.display = 'flex';
+  document.getElementById('reconnect-host-row').classList.remove('show');
+  document.getElementById('reconnect-join-row').classList.remove('show');
+  document.getElementById('reconnect-input').value = '';
+}
+
+function showReconnect(mode) {
+  document.getElementById('disc-row-main').style.display = 'none';
+  if (mode === 'host') {
+    document.getElementById('reconnect-host-row').classList.add('show');
+    document.getElementById('reconnect-join-row').classList.remove('show');
+    startReconnectHost();
+  } else {
+    document.getElementById('reconnect-join-row').classList.add('show');
+    document.getElementById('reconnect-host-row').classList.remove('show');
+    setTimeout(() => document.getElementById('reconnect-input').focus(), 50);
+  }
+}
+
+function startReconnectHost() {
+  teardownConnection();
+  const code = genCode();
+  S.code = code; S.isHost = true;
+  document.getElementById('reconnect-code').textContent = displayCode(code);
+  document.getElementById('reconnect-status').textContent = 'Waiting for peer…';
+  const p = createPeer(peerId(code));
+  S.peer = p;
+  p.on('connection', conn => {
+    if (S.conn) { conn.close(); return; }
+    S.conn = conn;
+    setupConn(conn, true);
+  });
+  p.on('error', err => {
+    if (err.type === 'unavailable-id') { setTimeout(startReconnectHost, 800); }
+    else { document.getElementById('reconnect-status').textContent = 'Network error — try again'; toast('Network error.', 'err'); }
+  });
+}
+
+function doReconnectJoin() {
+  const val = rawCode(document.getElementById('reconnect-input').value.trim());
+  if (val.length !== 6) { toast('Enter a valid 6-character code.', 'err'); return; }
+  teardownConnection();
+  S.code = val; S.isHost = false;
+  const p = createPeer(undefined);
+  S.peer = p;
+  p.on('open', () => {
+    const conn = p.connect(peerId(val), { reliable: true, serialization: 'raw' });
+    S.conn = conn;
+    setupConn(conn, true);
+  });
+  p.on('error', () => toast('Could not connect. Check the code.', 'err'));
+}
+
+function copyReconnectCode() {
+  navigator.clipboard.writeText(document.getElementById('reconnect-code').textContent)
+    .then(() => toast('Code copied.', 'ok')).catch(() => toast('Copy failed.', 'err'));
 }
 
 function endSession() {
@@ -1038,10 +1356,13 @@ function cleanup() {
   clearTimeout(S.typingTimeout); clearTimeout(S.peerTypingTimeout);
   S.live = false; S.key = null; S.code = null;
   S.lastSender = null; S.atBottom = true; S.unread = 0;
+  S.notifEnabled = false;
   document.getElementById('disc-bar').classList.remove('show');
+  resetReconnectPanel();
   document.getElementById('send-btn').disabled = false;
   document.getElementById('join-input').value = '';
   document.getElementById('join-err').textContent = '';
+  updateNotifBtn();
 }
 
 function copyCode() {
